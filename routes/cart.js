@@ -25,9 +25,9 @@ router.post("/user/:userId/cart", async (req, res) => {
       });
     }
 
-    const cartProductIndex = user.cart.findIndex((cartProduct) =>
-      cartProduct.product._id.equals(productId)
-    );
+    const cartProductIndex = user.cart.findIndex((cartProduct) => {
+      return cartProduct.product._id == productId;
+    });
 
     if (cartProductIndex > -1) {
       user.cart[cartProductIndex].quantity += quantity;
@@ -50,6 +50,48 @@ router.post("/user/:userId/cart", async (req, res) => {
 
     return res.status(200).json({
       message: "Product added to cart",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      error: "Server error",
+    });
+  }
+});
+
+router.put("/user/:userId/cart/:productId", async (req, res) => {
+  const { userId, productId } = req.params;
+
+  try {
+    const user = await User.findById(userId).lean().populate("cart.product");
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    const cartProductIndex = user.cart.findIndex((cartProduct) => {
+      return cartProduct.product._id == productId;
+    });
+
+    if (cartProductIndex === -1) {
+      return res.status(404).json({
+        error: "Product not found in cart",
+      });
+    }
+
+    user.cart.splice(cartProductIndex, 1);
+    await User.updateOne(
+      { _id: userId },
+      { $pull: { cart: { product: productId } } }
+    );
+
+    const updatedUser = await User.findById(userId).populate("cart.product");
+
+    return res.status(200).json({
+      message: "Product removed from cart",
       user: updatedUser,
     });
   } catch (err) {
