@@ -48,10 +48,39 @@ const productSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    reviews: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        comment: {
+          type: String,
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+        },
+        date: {
+          type: Date,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
+
+productSchema.virtual("sale_price").get(function () {
+  if (this.onsale) {
+    return ((this.price * (100 - this.salePercent)) / 100).toFixed(2);
+  }
+  return this.price;
+});
+
+productSchema.set("toJSON", { virtuals: true });
+productSchema.set("toObject", { virtuals: true });
 
 mongoose.model("Product", productSchema);

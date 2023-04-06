@@ -109,4 +109,23 @@ router.get("/products/:id", async (req, res) => {
   }
 });
 
+router.post("/products/:id/reviews", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const { name, comment, rating } = req.body;
+    const review = { name, comment, rating, date: Date.now() };
+    product.reviews.push(review);
+    await product.save();
+
+    res.status(201).json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 module.exports = router;
