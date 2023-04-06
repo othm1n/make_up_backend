@@ -102,4 +102,87 @@ router.put("/user/:userId/cart/:productId", async (req, res) => {
   }
 });
 
+router.put("/user/:userId/cart/:productId/quantity", async (req, res) => {
+  const { userId, productId } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const user = await User.findById(userId).lean().populate("cart.product");
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    const cartProductIndex = user.cart.findIndex((cartProduct) => {
+      return cartProduct.product._id == productId;
+    });
+
+    if (cartProductIndex === -1) {
+      return res.status(404).json({
+        error: "Product not found in cart",
+      });
+    }
+
+    if (quantity <= 0) {
+      return res.status(400).json({
+        error: "Quantity should be greater than 0",
+      });
+    }
+
+    user.cart[cartProductIndex].quantity = quantity;
+    await User.updateOne(
+      { _id: userId, "cart.product": productId },
+      { $set: { "cart.$.quantity": quantity } }
+    );
+
+    const updatedUser = await User.findById(userId).populate("cart.product");
+
+    return res.status(200).json({
+      message: "Cart quantity updated",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      error: "Server error",
+    });
+  }
+});
+
+router.post("/user/:userId/cart/checkout", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).lean().populate("cart.product");
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    if (user.cart.length === 0) {
+      return res.status(400).json({
+        error: "Cart is empty",
+      });
+    }
+
+    await User.updateOne({ _id: userId }, { $set: { cart: [] } });
+
+    const updatedUser = await User.findById(userId).populate("cart.product");
+
+    return res.status(200).json({
+      message: "Checkout completed successfully",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      error: "Server error",
+    });
+  }
+});
+
 module.exports = router;

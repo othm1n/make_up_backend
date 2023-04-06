@@ -59,6 +59,19 @@ router.post("/addproduct", async ({ body }, res) => {
   }
 });
 
+router.get("/products/search", async (req, res) => {
+  try {
+    const { query } = req.query;
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" },
+    });
+    res.status(200).json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get("/products", async (req, res) => {
   try {
     const products = await Product.find({});
