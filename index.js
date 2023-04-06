@@ -31,7 +31,11 @@ app.use(
 
 app.use(
   cors({
-    origin: ["http://localhost:8080", "https://makeup01.netlify.app/"],
+    origin: [
+      "http://localhost:8080",
+      "https://makeup01.netlify.app",
+      "https://make-up-backend.onrender.com",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
