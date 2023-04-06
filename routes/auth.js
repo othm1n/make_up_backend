@@ -84,4 +84,19 @@ router.post("/signin", async (req, res) => {
   }
 });
 
+router.post("/logout", async (req, res) => {
+  try {
+    localStorage.removeItem("token");
+
+    return res.status(200).json({
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      error: "Server error",
+    });
+  }
+});
+
 module.exports = router;
