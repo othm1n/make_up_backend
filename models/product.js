@@ -77,7 +77,7 @@ productSchema.virtual("sale_price").get(function () {
   if (this.onsale) {
     return ((this.price * (100 - this.salePercent)) / 100).toFixed(2);
   }
-  return this.price;
+  return this.price.toFixed(2);
 });
 
 productSchema.set("toJSON", { virtuals: true });
